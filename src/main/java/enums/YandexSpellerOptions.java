@@ -18,4 +18,8 @@ public enum YandexSpellerOptions {
     public String getCode() {
         return code;
     }
+
+    public int getIntCode() {
+        return Integer.parseInt(code);
+    }
 }

@@ -3,7 +3,9 @@ package core;
 import beans.YandexSpellerAnswer;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import enums.RequestSenderKinds;
 import enums.YandexSpellerLanguages;
+import enums.YandexSpellerOptions;
 import enums.YandexSpellerSoapActions;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
@@ -15,6 +17,7 @@ import io.restassured.specification.ResponseSpecification;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -30,6 +33,7 @@ public class YandexSpellerApi {
     //builder pattern
     private YandexSpellerApi() {
     }
+
     private HashMap<String, Object> params = new HashMap<String, Object>();
 
     public static class ApiBuilder {
@@ -49,8 +53,12 @@ public class YandexSpellerApi {
             return this;
         }
 
-        public ApiBuilder options(String options) {
-            spellerApi.params.put(PARAM_OPTIONS, options);
+        public ApiBuilder options(YandexSpellerOptions... options) {
+            int totalOption = 0;
+            for (YandexSpellerOptions option : options) {
+                totalOption += option.getCode();
+            }
+            spellerApi.params.put(PARAM_OPTIONS, totalOption);
             return this;
         }
 
@@ -60,16 +68,47 @@ public class YandexSpellerApi {
         }
 
         public Response callApi(YandexSpellerSoapActions action) {
+            return callApi(action, RequestSenderKinds.GET);
+        }
+
+        public Response callApi(YandexSpellerSoapActions action, RequestSenderKinds typeRequest) {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            return RestAssured.with()
+            String uri = YANDEX_SPELLER_API_URI + action.getMethod();
+
+            RequestSpecification request = RestAssured.with()
                     .queryParams(spellerApi.params)
-                    .log().all()
-                    .get(YANDEX_SPELLER_API_URI + action.getMethod()).prettyPeek();
+                    .log().all();
+
+            Response response;
+            switch (typeRequest) {
+                case POST:
+                    response = request.post(uri);
+                    break;
+                case HEAD:
+                    response = request.head(uri);
+                    break;
+                case OPTIONS:
+                    response = request.options(uri);
+                    break;
+                case PUT:
+                    response = request.put(uri);
+                    break;
+                case PATCH:
+                    response = request.patch(uri);
+                    break;
+                case DELETE:
+                    response = request.delete(uri);
+                    break;
+                default:
+                    response = request.get(uri);
+                    break;
+            }
+            return response.prettyPeek();
         }
     }
 
@@ -79,17 +118,19 @@ public class YandexSpellerApi {
     }
 
     //get ready Speller answers list form api response
-    public static List<YandexSpellerAnswer> getYandexSpellerAnswer(Response response){
-        return new Gson().fromJson( response.asString().trim(), new TypeToken<List<YandexSpellerAnswer>>() {}.getType());
+    public static List<YandexSpellerAnswer> getYandexSpellerAnswer(Response response) {
+        return new Gson().fromJson(response.asString().trim(), new TypeToken<List<YandexSpellerAnswer>>() {
+        }.getType());
     }
 
     //get ready Speller answers list form api response
-    public static List<List<YandexSpellerAnswer>> getYandexSpellerAnswers(Response response){
-        return new Gson().fromJson( response.asString().trim(), new TypeToken<List<List<YandexSpellerAnswer>>>() {}.getType());
+    public static List<List<YandexSpellerAnswer>> getYandexSpellerAnswers(Response response) {
+        return new Gson().fromJson(response.asString().trim(), new TypeToken<List<List<YandexSpellerAnswer>>>() {
+        }.getType());
     }
 
     //set base request and response specifications tu use in tests
-    public static ResponseSpecification successResponse(){
+    public static ResponseSpecification successResponse() {
         return new ResponseSpecBuilder()
                 .expectContentType(ContentType.JSON)
                 .expectHeader("Connection", "keep-alive")
@@ -99,16 +140,26 @@ public class YandexSpellerApi {
     }
 
     //set base request and response specifications tu use in tests
-    public static ResponseSpecification badRequestResponse(String expectBody){
+    public static ResponseSpecification checkResponse(int statusCode, String expectBody) {
         return new ResponseSpecBuilder()
                 .expectHeader("Connection", "keep-alive")
                 .expectResponseTime(lessThan(20000L))
-                .expectStatusCode(HttpStatus.SC_BAD_REQUEST)
+                .expectStatusCode(statusCode)
                 .expectBody(Matchers.containsString(expectBody))
                 .build();
     }
 
-    public static RequestSpecification baseRequestConfiguration(YandexSpellerSoapActions action){
+    //set base request and response specifications tu use in tests
+    public static ResponseSpecification checkResponse(int statusCode, ContentType contentType) {
+        return new ResponseSpecBuilder()
+                .expectContentType(contentType)
+                .expectHeader("Connection", "keep-alive")
+                .expectResponseTime(lessThan(20000L))
+                .expectStatusCode(statusCode)
+                .build();
+    }
+
+    public static RequestSpecification baseRequestConfiguration(YandexSpellerSoapActions action) {
         return new RequestSpecBuilder()
                 .setAccept(ContentType.XML)
                 .setRelaxedHTTPSValidation()

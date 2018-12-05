@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import static core.YandexSpellerConstants.*;
+import static enums.YandexSpellerOptions.IGNORE_CAPITALIZATION;
+import static enums.YandexSpellerOptions.IGNORE_DIGITS;
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -133,7 +135,7 @@ public class TestCheckTextYandexSpellerJSON {
     public void reachBuilderUsage() {
         YandexSpellerApi.with()
                 .language(YandexSpellerLanguages.UK)
-                .options("5")
+                .options(IGNORE_CAPITALIZATION)
                 .text(WRONG_WORD_UK)
                 .callApi(YandexSpellerSoapActions.CHECK_TEXT)
                 .then().specification(YandexSpellerApi.successResponse());
@@ -161,7 +163,7 @@ public class TestCheckTextYandexSpellerJSON {
                 YandexSpellerApi.getYandexSpellerAnswer(
                         YandexSpellerApi.with().
                                 text(WORD_WITH_LEADING_DIGITS)
-                                .options("2")
+                                .options(IGNORE_DIGITS)
                                 .callApi(YandexSpellerSoapActions.CHECK_TEXT));
         assertThat("expected number of answers is wrong.", answers.size(), equalTo(0));
     }
@@ -172,7 +174,7 @@ public class TestCheckTextYandexSpellerJSON {
                 YandexSpellerApi.getYandexSpellerAnswer(
                         YandexSpellerApi.with()
                                 .text(Cities.MOSCOW.corrVer().toLowerCase())
-                                .options("512")
+                                .options(IGNORE_CAPITALIZATION)
                                 .callApi(YandexSpellerSoapActions.CHECK_TEXT));
         assertThat("expected number of answers is wrong.", answers.size(), equalTo(0));
     }

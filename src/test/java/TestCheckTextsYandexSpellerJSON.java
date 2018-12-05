@@ -1,9 +1,7 @@
 import beans.YandexSpellerAnswer;
 import core.YandexSpellerApi;
-import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
-import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -12,6 +10,7 @@ import java.util.List;
 import static core.YandexSpellerConstants.*;
 import static core.YandexSpellerConstants.Cities.*;
 import static core.YandexSpellerConstants.SimpleWord.*;
+import static enums.RequestSenderKinds.*;
 import static enums.YandexSpellerErrorCodes.*;
 import static enums.YandexSpellerLanguages.*;
 import static enums.YandexSpellerOptions.*;
@@ -19,109 +18,66 @@ import static enums.YandexSpellerSoapActions.CHECK_TEXTS;
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.lessThan;
 
 public class TestCheckTextsYandexSpellerJSON {
-
-    // simple usage of RestAssured library: direct request call and response validations in test.
-    @Test
-    public void simpleSpellerApiCall() {
-        RestAssured
-                .given()
-                .queryParam(PARAM_TEXT, MOTHER.wrongVer())
-                .params(PARAM_LANG, EN.getLanguageCode(), PARAM_TEXT, BROTHER.corrVer())
-                .accept(ContentType.JSON)
-                .auth().none()
-                .header(HEADER_NAME, HEADER_VALUE)
-                .and()
-                .log().everything()
-                .when()
-                .get(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek()
-                .then()
-                .assertThat()
-                .statusCode(HttpStatus.SC_OK)
-                .body(Matchers.allOf(
-                        Matchers.stringContainsInOrder(Arrays.asList(MOTHER.wrongVer(), MOTHER.corrVer())),
-                        Matchers.containsString(String.format("\"%s\":%d", ANSWER_CODE , ERROR_UNKNOWN_WORD.getCode()))))
-                .contentType(ContentType.JSON)
-                .time(lessThan(20000L)); // Milliseconds
-    }
 
     // different http methods calls
     @Test
     public void spellerApiCallsWithDifferentMethods() {
         //GET
-        RestAssured
-                .given()
-                .param(PARAM_TEXT, Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .log()
-                .everything()
-                .get(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek();
+        YandexSpellerApi.with()
+                .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
+                .callApi(CHECK_TEXTS)
+                .then()
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ContentType.JSON));
         System.out.println(repeat("=", 100));
 
         //POST
-        RestAssured
-                .given()
-                .param(PARAM_TEXT, Arrays.asList(BROTHER.wrongVer(),MOTHER.wrongVer()))
-                .log()
-                .everything()
-                .post(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek();
+        YandexSpellerApi.with()
+                .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
+                .callApi(CHECK_TEXTS, POST)
+                .then()
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ContentType.JSON));
         System.out.println(repeat("=", 100));
 
         //HEAD
-        RestAssured
-                .given()
-                .param(PARAM_TEXT, Arrays.asList(BROTHER.wrongVer(),MOTHER.wrongVer()))
-                .log()
-                .everything()
-                .head(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek();
+        YandexSpellerApi.with()
+                .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
+                .callApi(CHECK_TEXTS, HEAD)
+                .then()
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ContentType.JSON));
         System.out.println(repeat("=", 100));
 
         //OPTIONS
-        RestAssured
-                .given()
-                .param(PARAM_TEXT, Arrays.asList(BROTHER.wrongVer(),MOTHER.wrongVer()))
-                .log()
-                .everything()
-                .options(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek();
+        YandexSpellerApi.with()
+                .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
+                .callApi(CHECK_TEXTS, OPTIONS)
+                .then()
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ""));
         System.out.println(repeat("=", 100));
 
         //PUT
-        RestAssured
-                .given()
-                .param(PARAM_TEXT, Arrays.asList(BROTHER.wrongVer(),MOTHER.wrongVer()))
-                .log()
-                .everything()
-                .put(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek();
+        YandexSpellerApi.with()
+                .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
+                .callApi(CHECK_TEXTS, PUT)
+                .then()
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, ""));
         System.out.println(repeat("=", 100));
 
         //PATCH
-        RestAssured
-                .given()
-                .param(PARAM_TEXT, Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .log()
-                .everything()
-                .patch(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek();
+        YandexSpellerApi.with()
+                .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
+                .callApi(CHECK_TEXTS, PATCH)
+                .then()
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, ""));
         System.out.println(repeat("=", 100));
 
         //DELETE
-        RestAssured
-                .given()
-                .param(PARAM_TEXT, Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .log()
-                .everything()
-                .delete(YANDEX_SPELLER_API_URI + CHECK_TEXTS.getMethod())
-                .prettyPeek()
+        YandexSpellerApi.with()
+                .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
+                .callApi(CHECK_TEXTS, DELETE)
                 .then()
-                .statusCode(HttpStatus.SC_METHOD_NOT_ALLOWED)
-                .statusLine("HTTP/1.1 405 Method not allowed");
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, ""));
     }
 
     //code API response OK
@@ -131,7 +87,7 @@ public class TestCheckTextsYandexSpellerJSON {
                 .text(MOTHER.wrongVer())
                 .callApi(CHECK_TEXTS)
                 .then()
-                .specification(YandexSpellerApi.successResponse());
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ContentType.JSON));
     }
 
     //code API response Bad request, invalid lang
@@ -142,34 +98,35 @@ public class TestCheckTextsYandexSpellerJSON {
                 .text(MOTHER.wrongVer())
                 .callApi(CHECK_TEXTS)
                 .then()
-                .specification(YandexSpellerApi.badRequestResponse("Invalid parameter '"+ PARAM_LANG + "'"));
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_BAD_REQUEST,"Invalid parameter '"+ PARAM_LANG + "'"));
     }
 
     //fail: code API response Bad request, invalid options
     @Test
     public void illegalOptions() {
         YandexSpellerApi.with()
-                .options(WRONG_OPTIONS.getCode())
+                .options(WRONG_OPTIONS)
                 .text(MOTHER.corrVer())
                 .callApi(CHECK_TEXTS)
                 .then()
-                .specification(YandexSpellerApi.badRequestResponse("Invalid parameter '" + PARAM_OPTIONS + "'"));
+                .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_BAD_REQUEST, "Invalid parameter '" + PARAM_OPTIONS + "'"));
     }
 
     //fail: don't work capitalization
     @Test
     public void wrongCapital() {
+        String londonLowercase = LONDON.corrVer().toLowerCase();
+
         List<List<YandexSpellerAnswer>> answers =
                 YandexSpellerApi.getYandexSpellerAnswers(
                         YandexSpellerApi.with()
                                 .language(EN)
-                                .text(Arrays.asList(MOSCOW.corrVer(), LONDON.corrVer().toLowerCase()))
+                                .text(Arrays.asList(MOSCOW.corrVer(), londonLowercase))
                                 .callApi(CHECK_TEXTS));
 
         assertThat("expected number of answers.", answers.size(), equalTo(2));
-        assertThat("expected one answer is wrong.", answers.get(1).size(), equalTo(1));
-        assertThat("expected " + LONDON.corrVer().toLowerCase() +" answers is wrong.",
-                answers.get(1).get(1).code, equalTo(ERROR_CAPITALIZATION.getCode()));
+        assertThat("expected one answer.", answers.get(1).size(), equalTo(1));
+        assertThat("expected " + londonLowercase + " answers is wrong.", answers.get(1).get(1).word, equalTo(londonLowercase));
     }
 
     // ignore URLs
@@ -178,13 +135,13 @@ public class TestCheckTextsYandexSpellerJSON {
         List<List<YandexSpellerAnswer>> answers =
                 YandexSpellerApi.getYandexSpellerAnswers(
                         YandexSpellerApi.with()
-                                .text(Arrays.asList(MOSCOW.corrVer(), URL))
+                                .text(Arrays.asList(URL))
                                 .language(EN)
-                                .options(String.valueOf(IGNORE_DIGITS.getIntCode() + IGNORE_URLS.getIntCode()))
+                                .options(IGNORE_DIGITS, IGNORE_URLS)
                                 .callApi(CHECK_TEXTS));
 
-        assertThat("expected number of answers.", answers.size(), equalTo(2));
-        assertThat("expected ignore " + URL + ".", answers.get(1).size(), equalTo(0));
+        assertThat("expected number of answers.", answers.size(), equalTo(1));
+        assertThat("expected ignore " + URL + ".", answers.get(0).size(), equalTo(0));
     }
 
     //validate other words

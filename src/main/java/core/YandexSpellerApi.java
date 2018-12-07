@@ -3,7 +3,6 @@ package core;
 import beans.YandexSpellerAnswer;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import enums.RequestSenderKinds;
 import enums.YandexSpellerLanguages;
 import enums.YandexSpellerOptions;
 import enums.YandexSpellerSoapActions;
@@ -11,17 +10,18 @@ import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.builder.ResponseSpecBuilder;
 import io.restassured.http.ContentType;
+import io.restassured.http.Method;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import io.restassured.specification.ResponseSpecification;
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static core.YandexSpellerConstants.*;
+import static io.restassured.http.Method.GET;
 import static org.hamcrest.Matchers.lessThan;
 
 /**
@@ -35,6 +35,7 @@ public class YandexSpellerApi {
     }
 
     private HashMap<String, Object> params = new HashMap<String, Object>();
+    private Method method = GET;
 
     public static class ApiBuilder {
         YandexSpellerApi spellerApi;
@@ -67,11 +68,12 @@ public class YandexSpellerApi {
             return this;
         }
 
-        public Response callApi(YandexSpellerSoapActions action) {
-            return callApi(action, RequestSenderKinds.GET);
+        public ApiBuilder restMethod(Method restMethod) {
+            spellerApi.method = restMethod;
+            return this;
         }
 
-        public Response callApi(YandexSpellerSoapActions action, RequestSenderKinds typeRequest) {
+        public Response callApi(YandexSpellerSoapActions action) {
             try {
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
@@ -80,35 +82,11 @@ public class YandexSpellerApi {
 
             String uri = YANDEX_SPELLER_API_URI + action.getMethod();
 
-            RequestSpecification request = RestAssured.with()
+            return RestAssured.with()
                     .queryParams(spellerApi.params)
-                    .log().all();
-
-            Response response;
-            switch (typeRequest) {
-                case POST:
-                    response = request.post(uri);
-                    break;
-                case HEAD:
-                    response = request.head(uri);
-                    break;
-                case OPTIONS:
-                    response = request.options(uri);
-                    break;
-                case PUT:
-                    response = request.put(uri);
-                    break;
-                case PATCH:
-                    response = request.patch(uri);
-                    break;
-                case DELETE:
-                    response = request.delete(uri);
-                    break;
-                default:
-                    response = request.get(uri);
-                    break;
-            }
-            return response.prettyPeek();
+                    .log().all()
+                    .request(spellerApi.method, uri)
+                    .prettyPeek();
         }
     }
 

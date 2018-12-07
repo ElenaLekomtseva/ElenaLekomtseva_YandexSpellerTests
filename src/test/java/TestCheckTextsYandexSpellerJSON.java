@@ -10,11 +10,11 @@ import java.util.List;
 import static core.YandexSpellerConstants.*;
 import static core.YandexSpellerConstants.Cities.*;
 import static core.YandexSpellerConstants.SimpleWord.*;
-import static enums.RequestSenderKinds.*;
 import static enums.YandexSpellerErrorCodes.*;
 import static enums.YandexSpellerLanguages.*;
 import static enums.YandexSpellerOptions.*;
 import static enums.YandexSpellerSoapActions.CHECK_TEXTS;
+import static io.restassured.http.Method.*;
 import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -35,7 +35,8 @@ public class TestCheckTextsYandexSpellerJSON {
         //POST
         YandexSpellerApi.with()
                 .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .callApi(CHECK_TEXTS, POST)
+                .restMethod(POST)
+                .callApi(CHECK_TEXTS)
                 .then()
                 .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ContentType.JSON));
         System.out.println(repeat("=", 100));
@@ -43,7 +44,8 @@ public class TestCheckTextsYandexSpellerJSON {
         //HEAD
         YandexSpellerApi.with()
                 .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .callApi(CHECK_TEXTS, HEAD)
+                .restMethod(HEAD)
+                .callApi(CHECK_TEXTS)
                 .then()
                 .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ContentType.JSON));
         System.out.println(repeat("=", 100));
@@ -51,7 +53,8 @@ public class TestCheckTextsYandexSpellerJSON {
         //OPTIONS
         YandexSpellerApi.with()
                 .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .callApi(CHECK_TEXTS, OPTIONS)
+                .restMethod(OPTIONS)
+                .callApi(CHECK_TEXTS)
                 .then()
                 .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_OK, ""));
         System.out.println(repeat("=", 100));
@@ -59,7 +62,8 @@ public class TestCheckTextsYandexSpellerJSON {
         //PUT
         YandexSpellerApi.with()
                 .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .callApi(CHECK_TEXTS, PUT)
+                .restMethod(PUT)
+                .callApi(CHECK_TEXTS)
                 .then()
                 .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, ""));
         System.out.println(repeat("=", 100));
@@ -67,7 +71,8 @@ public class TestCheckTextsYandexSpellerJSON {
         //PATCH
         YandexSpellerApi.with()
                 .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .callApi(CHECK_TEXTS, PATCH)
+                .restMethod(PATCH)
+                .callApi(CHECK_TEXTS)
                 .then()
                 .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, ""));
         System.out.println(repeat("=", 100));
@@ -75,7 +80,8 @@ public class TestCheckTextsYandexSpellerJSON {
         //DELETE
         YandexSpellerApi.with()
                 .text(Arrays.asList(BROTHER.wrongVer(), MOTHER.wrongVer()))
-                .callApi(CHECK_TEXTS, DELETE)
+                .restMethod(DELETE)
+                .callApi(CHECK_TEXTS)
                 .then()
                 .specification(YandexSpellerApi.checkResponse(HttpStatus.SC_METHOD_NOT_ALLOWED, ""));
     }
